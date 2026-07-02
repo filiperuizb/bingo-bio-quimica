@@ -37,8 +37,8 @@ export const BINGO_ITEMS: BingoItem[] = [
   {
     numero: 7,
     pergunta:
-      "Qual medicamento para diabetes, junto com exercício, pode aumentar o risco de queda da glicemia?",
-    resposta: "Insulina",
+      "Quem faz exame deve sempre informar o uso de medicamento ao?",
+    resposta: "Laboratório",
   },
   {
     numero: 8,
