@@ -17,7 +17,7 @@ export const BINGO_ITEMS: BingoItem[] = [
   {
     numero: 3,
     pergunta: "Antes de um exame, devemos parar os medicamentos por conta própria?",
-    resposta: "Não",
+    resposta: "Nunca",
   },
   {
     numero: 4,
