@@ -213,6 +213,7 @@ export default function BingoPage() {
         open={questionOpen}
         numero={questionModal}
         pergunta={activeQuestion?.pergunta ?? null}
+        resposta={activeQuestion?.resposta ?? null}
         onClose={() => setQuestionModal(null)}
       />
 

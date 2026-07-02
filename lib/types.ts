@@ -3,6 +3,7 @@ export type NumberSize = "normal" | "large" | "projector"
 export interface BingoItem {
   numero: number
   pergunta: string
+  resposta: string
 }
 
 export interface BingoSettings {

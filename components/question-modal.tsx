@@ -3,16 +3,24 @@
 import { AnimatePresence, motion } from "framer-motion"
 import { HelpCircle } from "lucide-react"
 import { ActionButton } from "@/components/action-button"
+import { AnswerSpoiler } from "@/components/answer-spoiler"
 import { BINGO_BALL } from "@/lib/bingo"
 
 interface QuestionModalProps {
   open: boolean
   numero: number | null
   pergunta: string | null
+  resposta: string | null
   onClose: () => void
 }
 
-export function QuestionModal({ open, numero, pergunta, onClose }: QuestionModalProps) {
+export function QuestionModal({
+  open,
+  numero,
+  pergunta,
+  resposta,
+  onClose,
+}: QuestionModalProps) {
   const ball = BINGO_BALL
 
   return (
@@ -52,6 +60,10 @@ export function QuestionModal({ open, numero, pergunta, onClose }: QuestionModal
               <p className="text-pretty text-lg leading-relaxed text-foreground sm:text-xl">
                 {pergunta}
               </p>
+
+              {resposta ? (
+                <AnswerSpoiler resposta={resposta} resetKey={numero} className="mt-1" />
+              ) : null}
 
               <ActionButton size="lg" variant="accent" className="mt-2 w-full max-w-xs" onClick={onClose}>
                 Continuar
