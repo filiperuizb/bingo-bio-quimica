@@ -1,8 +1,11 @@
 export type NumberSize = "normal" | "large" | "projector"
 
+export interface BingoItem {
+  numero: number
+  pergunta: string
+}
+
 export interface BingoSettings {
-  title: string
-  maxNumber: number
   animationSpeed: number
   revealDuration: number
   confettiEnabled: boolean
@@ -18,7 +21,6 @@ export interface BingoSettings {
 
 export interface BingoState {
   settings: BingoSettings
-  numbers: number[]
   drawnNumbers: number[]
   lastNumber: number | null
 }

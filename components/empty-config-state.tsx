@@ -5,7 +5,6 @@ import Image from "next/image"
 import { motion } from "framer-motion"
 import { Settings } from "lucide-react"
 import { ActionButton } from "@/components/action-button"
-import { BingoMarquee } from "@/components/bingo-marquee"
 import { LottieAnimation } from "@/components/lottie-animation"
 
 interface EmptyConfigStateProps {
@@ -21,8 +20,6 @@ export function EmptyConfigState({ lottieEnabled = true }: EmptyConfigStateProps
         transition={{ type: "spring", stiffness: 200, damping: 22 }}
         className="bingo-gold-border w-full max-w-md overflow-hidden rounded-2xl bg-card/95 p-8 text-center backdrop-blur-sm"
       >
-        <BingoMarquee />
-
         <div className="relative mx-auto my-4 size-32">
           <Image
             src="/images/bingo-ball.png"

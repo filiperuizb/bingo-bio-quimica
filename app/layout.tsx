@@ -2,6 +2,7 @@ import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { DM_Sans, Luckiest_Guy } from 'next/font/google'
 import { BingoBackground } from '@/components/bingo-background'
+import { BINGO_TITLE } from '@/lib/questions'
 import './globals.css'
 
 const luckiest = Luckiest_Guy({
@@ -16,9 +17,8 @@ const dmSans = DM_Sans({
 })
 
 export const metadata: Metadata = {
-  title: 'Bingo',
-  description:
-    'Sistema de bingo animado para festas, eventos e comemorações.',
+  title: BINGO_TITLE,
+  description: 'Bingo educativo sobre saúde, exercícios e exames laboratoriais.',
   icons: {
     icon: '/icon.svg',
   }

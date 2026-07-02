@@ -3,12 +3,14 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { BingoLoader } from "@/components/bingo-loader"
-import { Grid3x3, Play, RotateCcw, Trash2 } from "lucide-react"
+import { HelpCircle, Play, RotateCcw, Trash2 } from "lucide-react"
 import type { BingoSettings } from "@/lib/types"
+import { BINGO_TITLE } from "@/lib/questions"
 import { useBingo } from "@/hooks/use-bingo"
 import { Header } from "@/components/header"
 import { FestiveCard } from "@/components/festive-card"
 import { SettingsForm } from "@/components/settings-form"
+import { QuestionsList } from "@/components/questions-list"
 import { NumberGrid } from "@/components/number-grid"
 import { ActionButton } from "@/components/action-button"
 import { ConfirmDialog } from "@/components/confirm-dialog"
@@ -30,9 +32,9 @@ export default function ConfiguracoesPage() {
   const initialSettings = bingo.settings ?? bingo.defaultSettings
   const hasDrawn = bingo.drawnNumbers.length > 0
 
-  const handleSave = (settings: BingoSettings, maxChanged: boolean) => {
-    bingo.saveGame(settings, { resetDraw: maxChanged })
-    toast.show(maxChanged && hasDrawn ? "Configurações salvas e sorteio resetado" : "Configurações salvas")
+  const handleSave = (settings: BingoSettings) => {
+    bingo.saveSettings(settings)
+    toast.show("Configurações salvas")
   }
 
   const handleResetDraw = () => {
@@ -66,18 +68,14 @@ export default function ConfiguracoesPage() {
   }
 
   const handleStart = () => {
-    if (!bingo.isConfigured) {
-      toast.show("Salve as configurações antes de iniciar")
-      return
-    }
     router.push("/bingo")
   }
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
       <Header
-        title="Configurações do Bingo"
-        subtitle="Defina o jogo antes de sortear"
+        title={BINGO_TITLE}
+        subtitle="Configurações do sorteio"
         actions={
           <ActionButton variant="accent" onClick={handleStart}>
             <Play className="size-5" />
@@ -87,44 +85,31 @@ export default function ConfiguracoesPage() {
       />
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[1.3fr_1fr]">
-        <SettingsForm
-          key={formKey}
-          initialSettings={initialSettings}
-          hasDrawnNumbers={hasDrawn}
-          onSave={handleSave}
-        />
+        <SettingsForm key={formKey} initialSettings={initialSettings} onSave={handleSave} />
 
         <div className="space-y-6">
           <FestiveCard
-            title="Números do bingo"
-            description={
-              bingo.numbers.length > 0
-                ? `Intervalo de 1 a ${bingo.numbers.length}`
-                : "Salve para gerar os números"
-            }
-            icon={<Grid3x3 className="size-5" />}
+            title="Perguntas do bingo"
+            description="12 perguntas fixas sobre saúde e exames"
+            icon={<HelpCircle className="size-5" />}
             delay={0.1}
           >
-            {bingo.numbers.length > 0 ? (
-              <div className="max-h-[22rem] overflow-y-auto pr-1">
-                <NumberGrid
-                  numbers={bingo.numbers}
-                  drawnNumbers={bingo.drawnNumbers}
-                  lastNumber={bingo.lastNumber}
-                  compact
-                  maxNumber={initialSettings.maxNumber}
-                />
-              </div>
-            ) : (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                Os números aparecerão aqui após salvar as configurações.
-              </p>
-            )}
-            <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-              <Legend className="bg-secondary/40 border-border" label="Disponível" />
-              <Legend className="bg-primary border-primary/50" label="Sorteado" />
-              <Legend className="bg-accent border-accent" label="Último" />
+            <div className="max-h-[28rem] overflow-y-auto pr-1">
+              <QuestionsList />
             </div>
+          </FestiveCard>
+
+          <FestiveCard
+            title="Cartela"
+            description="Números de 1 a 12"
+            delay={0.15}
+          >
+            <NumberGrid
+              numbers={bingo.numbers}
+              drawnNumbers={bingo.drawnNumbers}
+              lastNumber={bingo.lastNumber}
+              compact
+            />
           </FestiveCard>
 
           <FestiveCard title="Ações" delay={0.2}>
@@ -133,7 +118,7 @@ export default function ConfiguracoesPage() {
                 <RotateCcw className="size-5" />
                 Resetar apenas o sorteio
               </ActionButton>
-              <ActionButton variant="danger" onClick={handleClearAll} disabled={!bingo.isConfigured}>
+              <ActionButton variant="danger" onClick={handleClearAll}>
                 <Trash2 className="size-5" />
                 Limpar tudo e recomeçar
               </ActionButton>
@@ -153,7 +138,7 @@ export default function ConfiguracoesPage() {
       <ConfirmDialog
         open={dialog === "clearAll"}
         title="Limpar tudo?"
-        description="Configurações, números e sorteios serão removidos. Esta ação não pode ser desfeita."
+        description="Configurações e sorteios serão resetados para o padrão."
         confirmLabel="Limpar tudo"
         onConfirm={runClearAll}
         onCancel={() => setDialog(null)}
@@ -161,14 +146,5 @@ export default function ConfiguracoesPage() {
 
       <FeedbackToast message={toast.message} />
     </main>
-  )
-}
-
-function Legend({ className, label }: { className: string; label: string }) {
-  return (
-    <span className="flex items-center gap-1.5">
-      <span className={`size-3.5 rounded-md border ${className}`} />
-      {label}
-    </span>
   )
 }

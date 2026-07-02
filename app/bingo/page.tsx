@@ -4,7 +4,8 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { AnimatePresence, motion } from "framer-motion"
 import { Dices, Grid3x3, PartyPopper, RotateCcw, Settings, Trophy } from "lucide-react"
-import { getBallSizeClasses, getBingoLetter } from "@/lib/bingo"
+import { getBallSizeClasses } from "@/lib/bingo"
+import { BINGO_TITLE, getBingoItem } from "@/lib/questions"
 import { useBingo } from "@/hooks/use-bingo"
 import { useDrawAnimation } from "@/hooks/use-draw-animation"
 import { Header } from "@/components/header"
@@ -15,9 +16,9 @@ import { DrawHistory } from "@/components/draw-history"
 import { ProgressPanel } from "@/components/progress-panel"
 import { ActionButton } from "@/components/action-button"
 import { ConfirmDialog } from "@/components/confirm-dialog"
+import { QuestionModal } from "@/components/question-modal"
 import { ConfettiBurst } from "@/components/confetti-burst"
 import { LottieAnimation } from "@/components/lottie-animation"
-import { EmptyConfigState } from "@/components/empty-config-state"
 import { BingoLoader } from "@/components/bingo-loader"
 import { FeedbackToast, useToast } from "@/components/feedback-toast"
 
@@ -27,6 +28,7 @@ export default function BingoPage() {
   const toast = useToast()
   const [confettiTrigger, setConfettiTrigger] = useState(0)
   const [resetOpen, setResetOpen] = useState(false)
+  const [questionModal, setQuestionModal] = useState<number | null>(null)
 
   const { isRolling, setStatic } = anim
   useEffect(() => {
@@ -35,25 +37,21 @@ export default function BingoPage() {
     }
   }, [bingo.hydrated, bingo.lastNumber, isRolling, setStatic])
 
-  if (!bingo.hydrated) {
+  if (!bingo.hydrated || !bingo.settings) {
     return <BingoLoader />
-  }
-
-  if (!bingo.isConfigured || !bingo.settings) {
-    return <EmptyConfigState lottieEnabled />
   }
 
   const settings = bingo.settings
   const ballSizeClass = getBallSizeClasses(settings.numberSize)
-  const activeLetter =
-    anim.displayValue !== null ? getBingoLetter(anim.displayValue, settings.maxNumber) : null
+  const questionOpen = questionModal !== null
   const drawDisabled =
     anim.isRolling ||
+    questionOpen ||
     bingo.remaining.length === 0 ||
     (settings.blockWhenComplete && bingo.complete)
 
   const handleDraw = () => {
-    if (anim.isRolling || bingo.complete || bingo.remaining.length === 0) return
+    if (anim.isRolling || bingo.complete || bingo.remaining.length === 0 || questionOpen) return
     const picked = bingo.drawNumber()
     if (picked === null) return
     anim.startDraw({
@@ -64,12 +62,14 @@ export default function BingoPage() {
       onComplete: (value) => {
         bingo.commitNumber(value)
         setConfettiTrigger((current) => current + 1)
+        setQuestionModal(value)
       },
     })
   }
 
   const handleReset = () => {
     if (anim.isRolling) return
+    setQuestionModal(null)
     if (settings.confirmBeforeReset) {
       setResetOpen(true)
       return
@@ -81,8 +81,11 @@ export default function BingoPage() {
   const confirmReset = () => {
     bingo.resetDraw()
     setResetOpen(false)
+    setQuestionModal(null)
     toast.show("Sorteio reiniciado")
   }
+
+  const activeQuestion = questionModal !== null ? getBingoItem(questionModal) : null
 
   const reveal = (
     <div className="flex flex-col items-center gap-6">
@@ -92,7 +95,6 @@ export default function BingoPage() {
         justRevealed={anim.justRevealed}
         ballSizeClass={ballSizeClass}
         lottieEnabled={settings.lottieEnabled}
-        maxNumber={settings.maxNumber}
       />
       <ActionButton
         size="xl"
@@ -118,7 +120,7 @@ export default function BingoPage() {
             )}
             <p className="font-heading text-3xl text-accent">BINGO!</p>
             <p className="text-sm text-muted-foreground">
-              Todos os {bingo.numbers.length} números foram sorteados. Parabéns!
+              Todas as {bingo.numbers.length} perguntas foram sorteadas.
             </p>
           </motion.div>
         ) : null}
@@ -131,9 +133,8 @@ export default function BingoPage() {
       <ConfettiBurst trigger={confettiTrigger} enabled={settings.confettiEnabled} />
 
       <Header
-        title={settings.title}
+        title={BINGO_TITLE}
         subtitle="Sorteio ao vivo"
-        activeLetter={activeLetter}
         actions={
           <>
             <ActionButton variant="outline" onClick={handleReset} disabled={bingo.drawnNumbers.length === 0}>
@@ -155,11 +156,7 @@ export default function BingoPage() {
           {reveal}
           <div className="w-full max-w-3xl">
             <FestiveCard delay={0.1}>
-              <DrawHistory
-                drawnNumbers={bingo.drawnNumbers}
-                count={settings.historyCount}
-                maxNumber={settings.maxNumber}
-              />
+              <DrawHistory drawnNumbers={bingo.drawnNumbers} count={settings.historyCount} />
             </FestiveCard>
           </div>
         </div>
@@ -179,11 +176,7 @@ export default function BingoPage() {
             </FestiveCard>
 
             <FestiveCard delay={0.1}>
-              <DrawHistory
-                drawnNumbers={bingo.drawnNumbers}
-                count={settings.historyCount}
-                maxNumber={settings.maxNumber}
-              />
+              <DrawHistory drawnNumbers={bingo.drawnNumbers} count={settings.historyCount} />
             </FestiveCard>
           </div>
         </div>
@@ -201,7 +194,6 @@ export default function BingoPage() {
             numbers={bingo.numbers}
             drawnNumbers={bingo.drawnNumbers}
             lastNumber={bingo.lastNumber}
-            maxNumber={settings.maxNumber}
           />
         </FestiveCard>
       ) : null}
@@ -217,10 +209,17 @@ export default function BingoPage() {
         </motion.p>
       ) : null}
 
+      <QuestionModal
+        open={questionOpen}
+        numero={questionModal}
+        pergunta={activeQuestion?.pergunta ?? null}
+        onClose={() => setQuestionModal(null)}
+      />
+
       <ConfirmDialog
         open={resetOpen}
         title="Resetar o sorteio?"
-        description="Todos os números sorteados serão apagados. As configurações do jogo serão mantidas."
+        description="Todos os números sorteados serão apagados. As configurações serão mantidas."
         confirmLabel="Resetar sorteio"
         onConfirm={confirmReset}
         onCancel={() => setResetOpen(false)}

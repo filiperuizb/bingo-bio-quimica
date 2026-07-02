@@ -1,8 +1,9 @@
 import type { BingoSettings } from "./types"
+import { BINGO_NUMEROS } from "./questions"
+
+export const BINGO_TOTAL = BINGO_NUMEROS.length
 
 export const defaultSettings: BingoSettings = {
-  title: "Bingo da Festa",
-  maxNumber: 75,
   animationSpeed: 80,
   revealDuration: 2200,
   confettiEnabled: true,
@@ -16,14 +17,9 @@ export const defaultSettings: BingoSettings = {
   lottieEnabled: true,
 }
 
-export function generateNumbers(max: number): number[] {
-  const total = Math.max(1, Math.floor(max))
-  return Array.from({ length: total }, (_, index) => index + 1)
-}
-
-export function getRemainingNumbers(numbers: number[], drawn: number[]): number[] {
+export function getRemainingNumbers(drawn: number[]): number[] {
   const drawnSet = new Set(drawn)
-  return numbers.filter((value) => !drawnSet.has(value))
+  return BINGO_NUMEROS.filter((value) => !drawnSet.has(value))
 }
 
 export function pickRandomNumber(remaining: number[]): number | null {
@@ -32,21 +28,22 @@ export function pickRandomNumber(remaining: number[]): number | null {
   return remaining[index]
 }
 
-export function isGameComplete(numbers: number[], drawn: number[]): boolean {
-  return numbers.length > 0 && drawn.length >= numbers.length
+export function isGameComplete(drawn: number[]): boolean {
+  return drawn.length >= BINGO_NUMEROS.length
 }
 
-export function getProgress(numbers: number[], drawn: number[]): number {
-  if (numbers.length === 0) return 0
-  return Math.min(100, Math.round((drawn.length / numbers.length) * 100))
-}
-
-export function isValidMaxNumber(value: number): boolean {
-  return Number.isFinite(value) && value > 1 && value <= 1000
+export function getProgress(drawn: number[]): number {
+  if (BINGO_NUMEROS.length === 0) return 0
+  return Math.min(100, Math.round((drawn.length / BINGO_NUMEROS.length) * 100))
 }
 
 export function isConfiguredSettings(settings: BingoSettings | null): settings is BingoSettings {
-  return !!settings && isValidMaxNumber(settings.maxNumber) && settings.title.trim().length > 0
+  return !!settings
+}
+
+export function normalizeSettings(stored: Partial<BingoSettings> | null): BingoSettings {
+  if (!stored) return defaultSettings
+  return { ...defaultSettings, ...stored }
 }
 
 export function getBallSizeClasses(size: BingoSettings["numberSize"]): string {
@@ -61,30 +58,23 @@ export function getBallSizeClasses(size: BingoSettings["numberSize"]): string {
   }
 }
 
-const BINGO_LETTERS = ["B", "I", "N", "G", "O"] as const
-
-export type BingoLetter = (typeof BINGO_LETTERS)[number]
-
-export const BINGO_BALL_STYLES: Record<
-  BingoLetter,
-  { ball: string; light: string; dark: string; text: string }
-> = {
-  B: { ball: "#e63946", light: "#ff6b7a", dark: "#b82d38", text: "#ffffff" },
-  I: { ball: "#457b9d", light: "#6ba3c7", dark: "#2d5a7b", text: "#ffffff" },
-  N: { ball: "#f0ebe3", light: "#ffffff", dark: "#c8c0b4", text: "#1a1a2e" },
-  G: { ball: "#2a9d8f", light: "#4ec4b4", dark: "#1d7268", text: "#ffffff" },
-  O: { ball: "#e9c46a", light: "#f5d98e", dark: "#c4a035", text: "#1a1a2e" },
+export const BINGO_BALL = {
+  ball: "#4386f9",
+  light: "#6ba3ff",
+  dark: "#2d5a9d",
+  text: "#1a2332",
 }
 
-export function getBingoLetter(number: number, maxNumber: number): BingoLetter {
-  if (maxNumber <= 75) {
-    if (number <= 15) return "B"
-    if (number <= 30) return "I"
-    if (number <= 45) return "N"
-    if (number <= 60) return "G"
-    return "O"
-  }
-  const segment = maxNumber / 5
-  const index = Math.min(4, Math.floor((number - 1) / segment))
-  return BINGO_LETTERS[index]
+export const BINGO_BALL_DRAWN = {
+  ball: "#1f7498",
+  light: "#3a9fc4",
+  dark: "#155a75",
+  text: "#ffffff",
+}
+
+export const BINGO_BALL_LAST = {
+  ball: "#e7ff54",
+  light: "#f5ff8a",
+  dark: "#b8cc42",
+  text: "#1a2332",
 }
